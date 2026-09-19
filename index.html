@@ -80,8 +80,8 @@ body.playing #hud{opacity:1}
 .ib:hover{border-color:var(--amber);color:var(--amber)}
 .ib svg{width:20px;height:20px}
 .ib.off{color:#ff8a8a}
-#lockHint{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);background:var(--panel);border:1px solid var(--line);padding:.7rem 1.1rem;border-radius:12px;font-weight:700;display:none}
-@media (pointer:fine){ body.playing:not(.locked):not(.in-vr) #lockHint{display:block} }
+#lockHint{position:absolute;left:50%;top:auto;bottom:22%;transform:translateX(-50%);text-align:center;max-width:min(560px,70vw);background:var(--panel);border:1px solid var(--line);padding:.7rem 1.1rem;border-radius:12px;font-weight:700;display:none}
+body.playing.hint:not(.in-vr) #lockHint{display:block}
 body.chat-open #lockHint{display:none!important}
 #labels{position:fixed;inset:0;z-index:9;pointer-events:none;overflow:hidden}
 .plabel{position:absolute;left:0;top:0;text-align:center;white-space:nowrap;background:rgba(8,18,22,.72);border:1px solid var(--c);border-radius:12px;padding:.35rem .7rem;transform-origin:50% 100%}
@@ -105,7 +105,7 @@ body:not(.playing) #labels{display:none}
 
 /* ---------- touch ---------- */
 #touchzone{position:fixed;inset:0;z-index:5;display:none;touch-action:none}
-@media (pointer:coarse){ body.playing:not(.in-vr) #touchzone{display:block} body.playing:not(.in-vr) .tbtns{display:flex} }
+body.touch.playing:not(.in-vr) #touchzone{display:block} body.touch.playing:not(.in-vr) .tbtns{display:flex}
 #stickbase{position:fixed;width:120px;height:120px;margin:-60px 0 0 -60px;border-radius:50%;border:2px solid rgba(255,255,255,.3);background:rgba(8,20,24,.3);opacity:0;pointer-events:none;transition:opacity .15s}
 #stickbase.on{opacity:1}
 #knob{position:absolute;left:35px;top:35px;width:50px;height:50px;border-radius:50%;background:rgba(255,209,102,.8)}
@@ -306,7 +306,7 @@ body.in-vr #hud,body.in-vr #title{display:none}
       <button class="ib" id="btnHelp" type="button" aria-label="Help and settings" title="Help and settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1"/></svg></button>
     </div>
   </div>
-  <div id="lockHint">Click anywhere to look around. Esc frees your mouse, C chats with Coburn.</div>
+  <div id="lockHint">Drag to spin the camera 360. Scroll or pinch to zoom. Press V for first person.</div>
 </div>
 <div class="tbtns"><button class="tb" id="btnSprint" type="button">RUN</button><button class="tb" id="btnJump" type="button">JUMP</button></div>
 <div id="banner"><h2></h2><p></p></div>
@@ -327,9 +327,9 @@ body.in-vr #hud,body.in-vr #title{display:none}
     <div class="mhead"><div><h2 id="helpTitle">How to play</h2><p>Find the gems. Unlock the worlds. Hunt the relics.</p></div><button class="x" id="helpClose" type="button" aria-label="Close">&times;</button></div>
     <p>Every world hides <b>12 glowing gems</b>, each marked by a tall beam of light, plus one golden <b>legendary relic</b>. The compass at the top always points to the nearest gem, and the radar shows everything around you. Collect gems to unlock new worlds. Your progress saves automatically on this device.</p>
     <h3>Computer</h3>
-    <ul><li><span class="kbd">W</span> <span class="kbd">A</span> <span class="kbd">S</span> <span class="kbd">D</span> or arrow keys to move, mouse to look (click the screen to lock the mouse)</li><li><span class="kbd">Space</span> jump, <span class="kbd">Shift</span> sprint, <span class="kbd">M</span> worlds menu, <span class="kbd">H</span> back to Basecamp, <span class="kbd">C</span> chat with Coburn, <span class="kbd">Esc</span> free the mouse</li><li>Game controllers work too: left stick moves, right stick looks, A jumps</li></ul>
-    <h3>Phone and tablet</h3>
-    <ul><li>Touch and drag on the left side to walk, drag on the right side to look</li><li>Tap JUMP to jump and RUN to toggle sprinting. Landscape gives you the biggest view.</li></ul>
+    <ul><li><span class="kbd">W</span> <span class="kbd">A</span> <span class="kbd">S</span> <span class="kbd">D</span> or arrow keys to move, <span class="kbd">Space</span> jump, <span class="kbd">Shift</span> sprint</li><li>Click and drag to spin the camera 360 around Coburn. Scroll, or pinch your trackpad, to zoom. <span class="kbd">Q</span> <span class="kbd">E</span> rotate, <span class="kbd">V</span> switches first and third person</li><li><span class="kbd">M</span> worlds menu, <span class="kbd">H</span> back to Basecamp, <span class="kbd">C</span> chat with Coburn</li><li>Game controllers work too: left stick moves, right stick looks, A jumps</li></ul>
+    <h3>Phone, tablet and touchscreen</h3>
+    <ul><li>Touch and drag on the left side to walk, drag on the right side to spin the camera, pinch with two fingers to zoom. Touchscreen laptops work the same way.</li><li>Tap JUMP to jump and RUN to toggle sprinting. Landscape gives you the biggest view.</li></ul>
     <h3>VR headset</h3>
     <ul><li>Open this site in your headset browser (Meta Quest works great) and tap <b>Enter VR</b></li><li>Left stick walks where you look, right stick snap-turns, A or trigger jumps, grip sprints</li><li>Clear a safe space around you and take breaks. Keep the comfort vignette on if you feel woozy.</li></ul>
     <h3>The worlds</h3>
@@ -946,6 +946,12 @@ void main(){
   o = vec4(finish(lit), 1.0);
 }`;
 
+const VS_RIG = `#version 300 es
+layout(location=0) in vec3 a_pos; layout(location=1) in vec3 a_col;
+uniform mat4 u_vp; uniform mat4 u_shadowVP; uniform mat4 u_model; uniform float u_emisU;
+out vec3 v_world; out vec3 v_col; out vec4 v_sh; out float v_emis;
+void main(){ vec4 w = u_model * vec4(a_pos,1.0); v_world = w.xyz; v_col = a_col; v_emis = u_emisU; v_sh = u_shadowVP * w; gl_Position = u_vp * w; }`;
+
 const FS_DEPTH = `#version 300 es
 precision mediump float; out vec4 o; void main(){ o = vec4(1.0); }`;
 
@@ -1153,7 +1159,7 @@ function uploadMesh(P, C, I) {
   gl.enableVertexAttribArray(1); gl.vertexAttribPointer(1, 3, gl.FLOAT, false, 0, 0);
   const ib = gl.createBuffer(); gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ib); gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, I, gl.STATIC_DRAW);
   gl.bindVertexArray(null);
-  return { pb, cb, ib, count: I.length, bufs: [pb, cb, ib] };
+  return { vao, pb, cb, ib, count: I.length, bufs: [pb, cb, ib] };
 }
 function meshFromMB(mb) { return uploadMesh(new Float32Array(mb.p), new Float32Array(mb.c), new Uint32Array(mb.i)); }
 
@@ -1727,6 +1733,121 @@ function freeWorld(ctx) {
 }
 
 /* =====================================================================
+   COBURN 3D — articulated third-person hero
+   ===================================================================== */
+const HERO = { parts: null, pose: { lean: 0, bob: 0, tl: 0, tr: 0, sl: 0, sr: 0, al: 0, ar: 0, fl: .3, fr: .3, spl: .12, spr: .12, head: 0, headX: 0, swimTilt: 0 }, phase: 0, yaw: 0, x: 0, y: 0, z: 0, state: 'idle' };
+function buildHero() {
+  const skin = hex('eeb892'), skinD = hex('d99a70'), hair = hex('f4cf5a'), hairL = hex('fff1b0'), hairD = hex('c8922a');
+  const vest = hex('5f6c3b'), vestD = hex('46512b'), tee = hex('2b2f36'), pants = hex('a38c5f'), pantsD = hex('86724f');
+  const boot = hex('6e4527'), sole = hex('2a1c12'), strap = hex('3b2a1d'), brass = hex('d4a84a'), roll = hex('c77a3a'), band = hex('23282c'), holo = hex('3ee6ff'), eye = hex('2d7fd3');
+  const R = rng(4242), P = {};
+  let mb;
+  // pelvis
+  mb = new MB(); mb.box(0, 0, 0, .15, .09, .1, pants, pantsD); mb.box(0, .08, 0, .155, .035, .105, strap); mb.box(0, .08, .106, .03, .03, .01, brass); mb.box(-.14, .02, .03, .035, .06, .05, strap); P.pelvis = meshFromMB(mb);
+  // torso (origin at waist)
+  mb = new MB();
+  mb.box(0, .2, 0, .15, .2, .1, tee); mb.box(0, .44, 0, .2, .1, .115, tee);
+  mb.box(-.105, .26, .01, .08, .25, .115, vest, hex('6c7a45')); mb.box(.105, .26, .01, .08, .25, .115, vest, hex('6c7a45'));
+  mb.box(-.11, .38, .12, .05, .045, .012, vestD); mb.box(.11, .38, .12, .05, .045, .012, vestD); mb.box(.11, .38, .133, .012, .012, .004, brass);
+  mb.box(-.13, .3, .115, .02, .2, .012, strap); mb.box(.13, .3, .115, .02, .2, .012, strap); mb.box(0, .33, .128, .13, .014, .01, strap); mb.box(0, .33, .135, .025, .022, .008, brass);
+  mb.box(0, .3, -.17, .15, .18, .07, hex('4a5630'), vest); // backpack
+  mb.setM(M4.rotZ(Math.PI / 2)); mb.cyl(.54, -.26, -.17, .075, .075, .52, 8, roll, roll); mb.setM(null);
+  mb.cyl(0, .52, 0, .055, .05, .09, 6, skinD, skin); // neck
+  P.torso = meshFromMB(mb);
+  // head (origin at neck top)
+  mb = new MB();
+  mb.ico(0, .12, 0, .12, 1, skin, .04, R, 1.1);
+  mb.box(0, .04, .06, .07, .035, .05, skin); // jaw
+  mb.box(-.04, .14, .108, .016, .01, .006, hex('ffffff')); mb.box(.04, .14, .108, .016, .01, .006, hex('ffffff'));
+  mb.box(-.04, .14, .114, .008, .008, .004, eye); mb.box(.04, .14, .114, .008, .008, .004, eye);
+  mb.box(-.04, .165, .11, .022, .006, .006, hairD); mb.box(.04, .168, .11, .022, .006, .006, hairD);
+  mb.box(0, .07, .115, .03, .005, .005, hex('8a4a36'));
+  mb.box(-.125, .12, 0, .015, .03, .025, skinD); mb.box(.125, .12, 0, .015, .03, .025, skinD);
+  mb.ico(0, .15, -.015, .142, 1, null, .1, R, .95, p => mix3(hair, hairL, p[1] * .5 + .5), true);
+  mb.box(-.128, .11, -.01, .02, .05, .06, hair); mb.box(.128, .11, -.01, .02, .05, .06, hair);
+  for (let k = 0; k < 14; k++) { const a = k / 14 * TAU, rr = .07 + (k % 2) * .03; mb.cyl(Math.cos(a) * rr, .2, Math.sin(a) * rr - .01, .05, 0, .11 + R() * .07, 4, hair, hairL, 0, R, [Math.cos(a) * .07, Math.sin(a) * .07 + .03]); }
+  mb.cyl(0, .19, .06, .05, 0, .12, 4, hair, hairL, 0, R, [.04, .09]);
+  mb.box(0, .215, 0, .148, .01, .148, band);
+  mb.box(0, .225, .09, .075, .028, .03, band);
+  P.head = meshFromMB(mb);
+  mb = new MB(); mb.box(0, .225, .122, .065, .019, .006, holo); P.lens = meshFromMB(mb);
+  // upper arms (origin at shoulder, hanging -Y)
+  const arm = (gaunt) => { const m = new MB(); m.cyl(0, -.12, 0, .058, .062, .15, 7, tee, tee); m.cyl(0, -.3, 0, .045, .055, .2, 7, skin, skin); return meshFromMB(m); };
+  P.uarm = arm();
+  const fore = (gaunt) => { const m = new MB(); m.cyl(0, -.26, 0, .036, .046, .26, 7, skin, skin); if (gaunt) { m.box(0, -.15, 0, .05, .07, .05, band); m.box(0, -.15, .051, .03, .045, .004, holo); } else m.box(0, -.2, 0, .048, .025, .048, strap); m.box(0, -.3, .005, .045, .05, .045, tee); return meshFromMB(m); };
+  P.foreL = fore(false); P.foreR = fore(true);
+  // thigh (origin at hip)
+  mb = new MB(); mb.cyl(0, -.44, 0, .065, .085, .44, 7, pants, pants); mb.box(.08, -.22, .01, .015, .06, .05, pantsD); P.thigh = meshFromMB(mb);
+  mb = new MB(); mb.box(-.08, -.22, .01, .015, .06, .05, pantsD); mb.cyl(0, -.44, 0, .065, .085, .44, 7, pants, pants); P.thighR = meshFromMB(mb);
+  // shin (origin at knee)
+  mb = new MB(); mb.cyl(0, -.34, 0, .055, .064, .34, 7, pants, pants); mb.box(0, -.04, .05, .055, .05, .02, hex('2b3134'));
+  mb.box(0, -.39, .015, .06, .07, .075, boot); mb.box(0, -.43, .045, .065, .025, .11, sole); mb.box(0, -.34, .02, .062, .012, .077, hex('3a2415'));
+  P.shin = meshFromMB(mb);
+  HERO.parts = P;
+}
+function heroUpdate(dt, standing) {
+  const H = HERO, p = H.pose;
+  const spd = Math.hypot(player.vx, player.vz), moving = spd > .4 && !standing;
+  if (moving) { const want = Math.atan2(player.vx, player.vz); let d = want - H.yaw; d = ((d + Math.PI) % TAU + TAU) % TAU - Math.PI; H.yaw += d * Math.min(1, dt * 12); }
+  const slope = world && !curWorld.islands ? world.slopeAt(player.x, player.z) : 0;
+  const uphill = moving && world ? world.terrainH(player.x + player.vx * .15, player.z + player.vz * .15) > world.terrainH(player.x, player.z) + .05 : false;
+  let st = 'idle';
+  if (standing) st = 'idle';
+  else if (player.swim) st = 'swim';
+  else if (!player.onGround && Math.abs(player.vy) > 1) st = 'air';
+  else if (moving && slope > .75 && uphill) st = 'climb';
+  else if (moving) st = spd > 8 ? 'run' : 'walk';
+  H.state = st;
+  H.phase += dt * (st === 'climb' ? 5 : st === 'swim' ? 4 : st === 'idle' ? 1.2 : spd * 1.7);
+  const s = Math.sin(H.phase), c = Math.cos(H.phase);
+  const T = { lean: 0, bob: 0, tl: 0, tr: 0, sl: 0, sr: 0, al: 0, ar: 0, fl: .25, fr: .25, spl: .1, spr: .1, head: Math.sin(time * .4) * .25, headX: 0, swimTilt: 0 };
+  if (st === 'idle') { T.bob = Math.sin(time * 2) * .006; T.al = Math.sin(time * 2) * .03; T.ar = -T.al; T.spl = T.spr = .14; }
+  else if (st === 'walk' || st === 'run') {
+    const run = st === 'run', a = run ? .95 : .55 * Math.min(1, spd / 4) + .15;
+    T.tl = s * a; T.tr = -s * a; T.sl = Math.max(0, -s) * a * 1.5 + .05; T.sr = Math.max(0, s) * a * 1.5 + .05;
+    T.al = -s * a * .85; T.ar = s * a * .85; T.fl = run ? 1.35 : .35; T.fr = T.fl;
+    T.lean = run ? .22 : .05; T.bob = Math.abs(c) * (run ? .06 : .03); T.head = 0; T.headX = run ? -.12 : 0;
+  } else if (st === 'air') {
+    const up = player.vy > 0; T.tl = up ? .9 : .4; T.tr = up ? .15 : .55; T.sl = up ? 1.3 : .5; T.sr = up ? .5 : .7;
+    T.al = -.4; T.ar = -.4; T.spl = up ? 2.3 : 1.4; T.spr = T.spl; T.fl = .5; T.fr = .5; T.lean = .12; T.head = 0; T.headX = up ? -.2 : .15;
+  } else if (st === 'climb') {
+    T.lean = .45; T.tl = .5 + s * .6; T.tr = .5 - s * .6; T.sl = 1 + Math.max(0, s) * .6; T.sr = 1 + Math.max(0, -s) * .6;
+    T.al = 2.5 + s * .45; T.ar = 2.5 - s * .45; T.fl = .5 + Math.max(0, -s) * .6; T.fr = .5 + Math.max(0, s) * .6; T.spl = T.spr = .25; T.head = 0; T.headX = -.35;
+  } else if (st === 'swim') {
+    T.swimTilt = 1.15; T.tl = s * .35; T.tr = -s * .35; T.sl = .3; T.sr = .3; T.al = H.phase % TAU; T.ar = (H.phase + Math.PI) % TAU; T.fl = .2; T.fr = .2; T.head = 0; T.headX = -.9;
+  }
+  const k = 1 - Math.exp(-dt * (st === 'swim' ? 30 : 14));
+  for (const key in T) { if ((key === 'al' || key === 'ar') && st === 'swim') { p[key] = T[key]; continue; } p[key] += (T[key] - p[key]) * k; }
+  H.x = player.x; H.y = player.y; H.z = player.z;
+}
+function heroMatrices() {
+  const H = HERO, p = H.pose, L = [];
+  const root = M4.mul(M4.trans(H.x, H.y + (player.swim ? .4 : 0), H.z), M4.rotY(H.yaw));
+  const pel = M4.mul(root, M4.mul(M4.trans(0, .92 + p.bob, 0), M4.rotX(p.swimTilt)));
+  L.push(['pelvis', pel]);
+  const tor = M4.mul(pel, M4.mul(M4.trans(0, .08, 0), M4.rotX(p.lean)));
+  L.push(['torso', tor]);
+  const head = M4.mul(tor, M4.mul(M4.trans(0, .6, 0), M4.mul(M4.rotY(p.head), M4.rotX(p.headX))));
+  L.push(['head', head], ['lens', head]);
+  const armL = M4.mul(tor, M4.mul(M4.trans(-.235, .5, 0), M4.mul(M4.rotZ(-p.spl), M4.rotX(-p.al))));
+  const armR = M4.mul(tor, M4.mul(M4.trans(.235, .5, 0), M4.mul(M4.rotZ(p.spr), M4.rotX(-p.ar))));
+  L.push(['uarm', armL], ['uarm', armR]);
+  L.push(['foreL', M4.mul(armL, M4.mul(M4.trans(0, -.3, 0), M4.rotX(-p.fl)))], ['foreR', M4.mul(armR, M4.mul(M4.trans(0, -.3, 0), M4.rotX(-p.fr)))]);
+  const thL = M4.mul(pel, M4.mul(M4.trans(-.09, -.02, 0), M4.rotX(-p.tl))), thR = M4.mul(pel, M4.mul(M4.trans(.09, -.02, 0), M4.rotX(-p.tr)));
+  L.push(['thigh', thL], ['thighR', thR]);
+  L.push(['shin', M4.mul(thL, M4.mul(M4.trans(0, -.44, 0), M4.rotX(p.sl)))], ['shin', M4.mul(thR, M4.mul(M4.trans(0, -.44, 0), M4.rotX(p.sr)))]);
+  return L;
+}
+function drawHero(prog) {
+  if (!HERO.parts) return;
+  const L = heroMatrices();
+  for (const [name, m] of L) {
+    const mesh = HERO.parts[name]; gl.uniformMatrix4fv(prog.u.u_model, false, m); if (prog.u.u_emisU) gl.uniform1f(prog.u.u_emisU, name === 'lens' ? 1.2 : .14);
+    gl.bindVertexArray(mesh.vao); gl.drawElements(gl.TRIANGLES, mesh.count, gl.UNSIGNED_INT, 0);
+  }
+}
+
+/* =====================================================================
    GAME STATE, SAVE, AUDIO
    ===================================================================== */
 const SAVE_KEY = 'vra_save_v1';
@@ -1779,7 +1900,7 @@ const player = { x: 0, y: 0, z: 0, vx: 0, vy: 0, vz: 0, yaw: 0, pitch: -.05, onG
 let state = 'title', time = 0, curWorld = null, fade = 0, edgeCool = 0, lockCool = 0, idleT = 0, xrSession = null, xrRef = null, xrFloor = 0, lastT = 0;
 const input = { f: 0, s: 0, jump: false, jumpHeld: false, sprint: false, lookX: 0, lookY: 0 };
 const keys = {};
-let progSh, progLit, progDepth, progSky, progWater, progPortal, progBeam, progPart, progQuad, progVig;
+let camEase = 1, camDist = 4.6, progRig, progRigDepth, progSh, progLit, progDepth, progSky, progWater, progPortal, progBeam, progPart, progQuad, progVig;
 let shadowFB = null, shadowTex = null, SHRES = 2048, shadowOn = true, dpr = 1;
 let partVAO, partBuf, partData, PARTS = [], BURST = [];
 const MAXP = 1400;
@@ -1805,7 +1926,7 @@ function resize() { const w = innerWidth, h = innerHeight; canvas.width = Math.r
 function initGL() {
   progLit = compile(VS_INST, FS_LIT); progDepth = compile(VS_INST, FS_DEPTH); progSky = compile(VS_SKY, FS_SKY);
   progWater = compile(VS_INST, FS_WATER); progPortal = compile(VS_PORTAL, FS_PORTAL); progBeam = compile(VS_BEAM, FS_BEAM);
-  progPart = compile(VS_PART, FS_PART); progQuad = compile(VS_QUAD, FS_QUAD); progVig = compile(VS_QUAD, FS_VIG);
+  progPart = compile(VS_PART, FS_PART); progRig = compile(VS_RIG, FS_LIT); progRigDepth = compile(VS_RIG, FS_DEPTH); progQuad = compile(VS_QUAD, FS_QUAD); progVig = compile(VS_QUAD, FS_VIG);
   partVAO = gl.createVertexArray(); gl.bindVertexArray(partVAO); partBuf = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, partBuf);
   partData = new Float32Array(MAXP * 8); gl.bufferData(gl.ARRAY_BUFFER, partData, gl.DYNAMIC_DRAW);
   gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0, 4, gl.FLOAT, false, 32, 0); gl.enableVertexAttribArray(1); gl.vertexAttribPointer(1, 4, gl.FLOAT, false, 32, 16);
@@ -1814,7 +1935,7 @@ function initGL() {
   gl.bindVertexArray(null);
   hudCanvas = document.createElement('canvas'); hudCanvas.width = 1024; hudCanvas.height = 384; hudCtx = hudCanvas.getContext('2d');
   hudTex = gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D, hudTex); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-  buildLibrary(); applyQuality();
+  buildLibrary(); buildHero(); applyQuality();
 }
 
 /* ---------- world loading ---------- */
@@ -2027,6 +2148,7 @@ function renderShadow(cx, cz) {
   gl.enable(gl.DEPTH_TEST); gl.depthMask(true); gl.enable(gl.POLYGON_OFFSET_FILL); gl.polygonOffset(2, 4); gl.disable(gl.BLEND);
   gl.useProgram(progDepth.p); gl.uniformMatrix4fv(progDepth.u.u_vp, false, shadowVP); gl.uniform1f(progDepth.u.u_time, time);
   for (const d of world.draws) { if (!d.shadow || !d.count) continue; flushInst(d); gl.bindVertexArray(d.vao); gl.drawElementsInstanced(gl.TRIANGLES, d.mesh.count, gl.UNSIGNED_INT, 0, d.count); }
+  if (heroVisible()) { gl.useProgram(progRigDepth.p); gl.uniformMatrix4fv(progRigDepth.u.u_vp, false, shadowVP); drawHero(progRigDepth); }
   gl.disable(gl.POLYGON_OFFSET_FILL);
 }
 function renderScene(proj, view, cam, fbo, vp4, xrView) {
@@ -2050,6 +2172,15 @@ function renderScene(proj, view, cam, fbo, vp4, xrView) {
   gl.uniform1f(u.u_shadowOn, shadowOn ? 1 : 0); gl.uniform1f(u.u_shadowRes, SHRES); gl.uniform1f(u.u_fogBase, W.islands ? 0 : 0);
   gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, shadowTex); gl.uniform1i(u.u_shadow, 0);
   for (const d of world.draws) { if (!d.count) continue; if (d.nofog) gl.uniform1f(u.u_fogDen, 0); flushInst(d); gl.bindVertexArray(d.vao); gl.drawElementsInstanced(gl.TRIANGLES, d.mesh.count, gl.UNSIGNED_INT, 0, d.count); if (d.nofog) gl.uniform1f(u.u_fogDen, s.fog); }
+  if (heroVisible()) {
+    const H = progRig, hu = H.u; gl.useProgram(H.p);
+    gl.uniformMatrix4fv(hu.u_vp, false, vp); gl.uniformMatrix4fv(hu.u_shadowVP, false, shadowVP);
+    gl.uniform3fv(hu.u_sunDir, L.sun); gl.uniform3fv(hu.u_sunCol, L.sc); gl.uniform3fv(hu.u_ambSky, L.as); gl.uniform3fv(hu.u_ambGnd, L.ag);
+    gl.uniform3fv(hu.u_fogCol, hex(s.hor.slice(1))); gl.uniform1f(hu.u_fogDen, s.fog); gl.uniform3fv(hu.u_camPos, cam);
+    gl.uniform1f(hu.u_shadowOn, shadowOn ? 1 : 0); gl.uniform1f(hu.u_shadowRes, SHRES); if (hu.u_fogBase) gl.uniform1f(hu.u_fogBase, 0);
+    gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, shadowTex); gl.uniform1i(hu.u_shadow, 0);
+    drawHero(H);
+  }
   // water / lava
   if (world.waters.length) {
     gl.enable(gl.BLEND); gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
@@ -2100,8 +2231,19 @@ function frame(t) {
   const dt = Math.min(.05, lastT ? (t - lastT) / 1000 : .016); lastT = t; step(dt);
   const W = curWorld; let cam, view;
   if (state === 'title') {
-    const a = time * .05, R = 42; cam = [Math.sin(a) * R, world.terrainH(Math.sin(a) * R, Math.cos(a) * R) + 9, Math.cos(a) * R];
-    view = M4.lookAt(cam, [0, 4, 0], [0, 1, 0]);
+    const a = time * .06 + 2.2, R = 5.2, tx = HERO.x, tz = HERO.z, ty = HERO.y + 1.3;
+    cam = [tx + Math.sin(a) * R, ty + 1.6, tz + Math.cos(a) * R]; cam[1] = Math.max(cam[1], world.groundAt(cam[0], cam[2]) + .8);
+    view = M4.lookAt(cam, [tx - Math.cos(a) * 2.6, ty + .2, tz + Math.sin(a) * 2.6], [0, 1, 0]);
+  } else if (camDist > .7) {
+    const e = clamp(-player.pitch, -.35, 1.35), d = camDist, tgt = [player.x, player.y + (player.swim ? 1.7 : 1.45), player.z];
+    let cx = tgt[0] + Math.sin(player.yaw) * Math.cos(e) * d, cy = tgt[1] + Math.sin(e) * d, cz = tgt[2] + Math.cos(player.yaw) * Math.cos(e) * d;
+    // pull the camera in front of trees, rocks and buildings
+    let tHit = 1; const sx = cx - tgt[0], sz = cz - tgt[2], L2 = sx * sx + sz * sz;
+    if (L2 > .01) { const seen = new Set(); for (let k = 0; k <= 8; k++) { const px = tgt[0] + sx * k / 8, pz = tgt[2] + sz * k / 8, L = world.colGrid.get(Math.floor(px / 16) + ',' + Math.floor(pz / 16)); if (!L) continue; for (const c of L) { if (seen.has(c)) continue; seen.add(c); const t = clamp(((c[0] - tgt[0]) * sx + (c[1] - tgt[2]) * sz) / L2, 0, 1), qx = tgt[0] + sx * t - c[0], qz = tgt[2] + sz * t - c[1]; if (qx * qx + qz * qz < (c[2] + .7) * (c[2] + .7) && t > .08) tHit = Math.min(tHit, Math.max(.12, t - (c[2] + .7) / Math.sqrt(L2))); } } }
+    camEase += (tHit - camEase) * Math.min(1, dt * (tHit < camEase ? 20 : 3));
+    cx = tgt[0] + (cx - tgt[0]) * camEase; cy = tgt[1] + (cy - tgt[1]) * camEase; cz = tgt[2] + (cz - tgt[2]) * camEase;
+    const gy = world.groundAt(cx, cz, cy); if (cy < gy + .6) cy = gy + .6;
+    cam = [cx, cy, cz]; view = M4.lookAt(cam, tgt, [0, 1, 0]);
   } else {
     const bob = SAVE.settings.bob && player.onGround ? Math.sin(player.walkT * 2) * .05 * Math.min(1, Math.hypot(player.vx, player.vz) / 6) : 0;
     cam = [player.x, player.y + 1.62 + bob, player.z];
@@ -2112,6 +2254,7 @@ function frame(t) {
   renderScene(proj, view, cam, null, [0, 0, canvas.width, canvas.height], false);
   if (W.hub && state !== 'title') positionLabels(M4.mul(proj, view)); else hideLabels();
 }
+function heroVisible() { return !xrSession && (state === 'title' || camDist > .7); }
 function step(dt) {
   time += dt; edgeCool -= dt; lockCool -= dt; idleT += dt;
   pollGamepad(dt);
@@ -2120,6 +2263,7 @@ function step(dt) {
     player.yaw -= input.lookX * sens; player.pitch -= input.lookY * sens * (SAVE.settings.invert ? -1 : 1); input.lookX = input.lookY = 0;
     player.pitch = clamp(player.pitch, -1.45, 1.45);
     if (!document.activeElement || !/INPUT|TEXTAREA/.test(document.activeElement.tagName)) {
+      if (keys.KeyQ) input.lookX -= dt * 2.2; if (keys.KeyE) input.lookX += dt * 2.2;
       const kf = (keys.KeyW || keys.ArrowUp ? 1 : 0) - (keys.KeyS || keys.ArrowDown ? 1 : 0), ks = (keys.KeyD || keys.ArrowRight ? 1 : 0) - (keys.KeyA || keys.ArrowLeft ? 1 : 0);
       if (kf || ks) { input.f = kf; input.s = ks; input.kb = true; } else if (input.kb) { input.f = input.s = 0; input.kb = false; }
     }
@@ -2127,7 +2271,7 @@ function step(dt) {
     if (Math.hypot(input.f, input.s) > .1) idleT = 0;
     if (idleT > 75) { idleT = -60; emit('idle'); }
   }
-  updateCreatures(dt); updateParticles(dt);
+  heroUpdate(dt, state !== 'play'); updateCreatures(dt); updateParticles(dt);
   if (state === 'play') updateHUD(false);
 }
 
@@ -2180,6 +2324,7 @@ async function enterVR() {
 
 /* ---------- input ---------- */
 function pollGamepad(dt) {
+  if (pollGamepad.off === undefined) { try { pollGamepad.off = !!(document.featurePolicy && !document.featurePolicy.allowsFeature('gamepad')); } catch (e) { pollGamepad.off = false; } }
   if (xrSession || !navigator.getGamepads || pollGamepad.off) return; let gps; try { gps = navigator.getGamepads(); } catch (e) { pollGamepad.off = true; return; } if (!gps) return;
   for (const gp of gps) { if (!gp || gp.mapping !== 'standard') continue;
     const lx = gp.axes[0], ly = gp.axes[1], rx = gp.axes[2], ry = gp.axes[3];
@@ -2196,37 +2341,53 @@ addEventListener('keydown', e => {
   keys[e.code] = true;
   if (e.code === 'Space') { e.preventDefault(); if (state === 'play') input.jump = true; }
   if (e.code === 'KeyM') toggleWorlds();
+  if (e.code === 'KeyV' && state === 'play') { camDist = camDist > .7 ? 0 : 4.6; }
+  if ((e.code === 'Equal' || e.code === 'NumpadAdd') && state === 'play') zoomBy(.85);
+  if ((e.code === 'Minus' || e.code === 'NumpadSubtract') && state === 'play') zoomBy(1.18);
   if (e.code === 'KeyH' && state === 'play') travel('basecamp');
   if (e.code === 'KeyC' && window.Coburn) window.Coburn.toggleChat();
   if ((e.code === 'Enter') && state === 'title') startGame();
 });
 addEventListener('keyup', e => { keys[e.code] = false; });
 addEventListener('blur', () => { for (const k in keys) keys[k] = false; input.f = input.s = 0; });
-canvas.addEventListener('click', () => { if (state === 'play' && !matchMedia('(pointer:coarse)').matches && canvas.requestPointerLock) { try { const r = canvas.requestPointerLock(); if (r && r.catch) r.catch(() => { }); } catch (e) { } } });
+
 document.addEventListener('mousemove', e => { if (document.pointerLockElement === canvas) { input.lookX += e.movementX * .0023; input.lookY += e.movementY * .0023; } });
 let dragLook = null;
-canvas.addEventListener('mousedown', e => { if (document.pointerLockElement !== canvas) dragLook = [e.clientX, e.clientY]; });
+const LOOK_EL = [canvas, document.getElementById('touchzone')];
+LOOK_EL.forEach(el => el.addEventListener('mousedown', e => { if (document.pointerLockElement !== canvas) { dragLook = [e.clientX, e.clientY]; e.preventDefault(); } }));
+LOOK_EL.forEach(el => el.addEventListener('contextmenu', e => e.preventDefault()));
+function zoomBy(f) { if (camDist < .7) { if (f > 1) camDist = 1.4; return; } camDist = clamp(camDist * f, .5, 18); if (camDist < .75) camDist = 0; }
+LOOK_EL.forEach(el => el.addEventListener('wheel', e => {
+  e.preventDefault(); if (state !== 'play') return;
+  if (e.ctrlKey) zoomBy(1 + e.deltaY * .012);
+  else if (Math.abs(e.deltaX) > Math.abs(e.deltaY) * 1.2) input.lookX += e.deltaX * .004;
+  else zoomBy(1 + clamp(e.deltaY, -120, 120) * .0016);
+}, { passive: false }));
+let gScale = 1;
+LOOK_EL.forEach(el => { el.addEventListener('gesturestart', e => { e.preventDefault(); gScale = e.scale; }); el.addEventListener('gesturechange', e => { e.preventDefault(); zoomBy(gScale / e.scale); gScale = e.scale; }); });
 addEventListener('mouseup', () => dragLook = null);
-addEventListener('mousemove', e => { if (dragLook && state === 'play') { input.lookX += (e.clientX - dragLook[0]) * .004; input.lookY += (e.clientY - dragLook[1]) * .004; dragLook = [e.clientX, e.clientY]; } });
+addEventListener('mousemove', e => { if (dragLook && state === 'play') { input.lookX += (e.clientX - dragLook[0]) * .005; input.lookY += (e.clientY - dragLook[1]) * .005; dragLook = [e.clientX, e.clientY]; } });
 document.addEventListener('pointerlockchange', () => { document.body.classList.toggle('locked', document.pointerLockElement === canvas); });
 
 // touch
-const touch = { stick: null, look: null };
+const touch = { stick: null, looks: new Map(), pinch: null };
 function setupTouch() {
   const zone = document.getElementById('touchzone'), knob = document.getElementById('knob'), base = document.getElementById('stickbase');
   zone.addEventListener('touchstart', e => {
     for (const t of e.changedTouches) {
       if (t.clientX < innerWidth * .45 && !touch.stick) { touch.stick = { id: t.identifier, x: t.clientX, y: t.clientY }; base.style.left = t.clientX + 'px'; base.style.top = t.clientY + 'px'; base.classList.add('on'); }
-      else if (!touch.look) touch.look = { id: t.identifier, x: t.clientX, y: t.clientY };
-    } e.preventDefault();
+      else touch.looks.set(t.identifier, { x: t.clientX, y: t.clientY });
+    } touch.pinch = null; e.preventDefault();
   }, { passive: false });
   zone.addEventListener('touchmove', e => {
     for (const t of e.changedTouches) {
       if (touch.stick && t.identifier === touch.stick.id) { let dx = t.clientX - touch.stick.x, dy = t.clientY - touch.stick.y; const d = Math.hypot(dx, dy), m = 55; if (d > m) { dx *= m / d; dy *= m / d; } knob.style.transform = `translate(${dx}px,${dy}px)`; input.s = dx / m; input.f = -dy / m; }
-      else if (touch.look && t.identifier === touch.look.id) { input.lookX += (t.clientX - touch.look.x) * .006; input.lookY += (t.clientY - touch.look.y) * .006; touch.look.x = t.clientX; touch.look.y = t.clientY; }
-    } e.preventDefault();
+      else if (touch.looks.has(t.identifier)) { const L = touch.looks.get(t.identifier); if (touch.looks.size === 1) { input.lookX += (t.clientX - L.x) * .007; input.lookY += (t.clientY - L.y) * .007; } L.x = t.clientX; L.y = t.clientY; }
+    }
+    if (touch.looks.size >= 2) { const [a, b] = [...touch.looks.values()]; const d = Math.hypot(a.x - b.x, a.y - b.y); if (touch.pinch) zoomBy(touch.pinch / d); touch.pinch = d; }
+    e.preventDefault();
   }, { passive: false });
-  const end = e => { for (const t of e.changedTouches) { if (touch.stick && t.identifier === touch.stick.id) { touch.stick = null; input.f = input.s = 0; knob.style.transform = ''; base.classList.remove('on'); } if (touch.look && t.identifier === touch.look.id) touch.look = null; } };
+  const end = e => { for (const t of e.changedTouches) { if (touch.stick && t.identifier === touch.stick.id) { touch.stick = null; input.f = input.s = 0; knob.style.transform = ''; base.classList.remove('on'); } touch.looks.delete(t.identifier); } touch.pinch = null; };
   zone.addEventListener('touchend', end); zone.addEventListener('touchcancel', end);
   const jb = document.getElementById('btnJump'); jb.addEventListener('touchstart', e => { e.preventDefault(); input.jump = true; }, { passive: false });
   const sb = document.getElementById('btnSprint'); sb.addEventListener('touchstart', e => { e.preventDefault(); input.touchSprint = !input.touchSprint; input.sprint = input.touchSprint; sb.classList.toggle('on', input.touchSprint); }, { passive: false });
@@ -2308,7 +2469,7 @@ function startGame(fromVR) {
   Sfx.init(); Sfx.resume(); state = 'play'; document.body.classList.add('playing'); $('title').classList.add('gone'); setTimeout(() => { $('title').hidden = true; }, 650);
   const [sx, , sz] = world.spawn; player.x = sx; player.z = sz; player.y = world.groundAt(sx, sz); player.yaw = world.spawnYaw;
   updateHUD(true); emit('start');
-  if (!fromVR && !matchMedia('(pointer:coarse)').matches) setTimeout(() => { try { const r = canvas.requestPointerLock(); if (r && r.catch) r.catch(() => { }); } catch (e) { } }, 60);
+  document.body.classList.add('hint'); setTimeout(() => document.body.classList.remove('hint'), 8000);
 }
 
 /* ---------- public API for Coburn ---------- */
@@ -2333,7 +2494,7 @@ const VRA = window.VRA = {
   isMuted() { return !!SAVE.settings.mute; },
   quipToVR(t) { lastQuip = t; lastQuipT = time; hudDirty = true; },
   openWorlds, startGame, toast, enterVR,
-  debug: { player, world: () => world }
+  debug: { player, world: () => world, hero: HERO, cam: () => camDist }
 };
 
 /* ---------- boot ---------- */
@@ -2343,6 +2504,8 @@ function boot() {
   loadWorld('basecamp'); state = 'title';
   addEventListener('resize', resize);
   setupTouch();
+  if (matchMedia('(pointer:coarse)').matches) document.body.classList.add('touch');
+  addEventListener('touchstart', () => document.body.classList.add('touch'), { once: true, passive: true });
   $('btnStart').addEventListener('click', () => startGame());
   $('btnWorlds').addEventListener('click', openWorlds); $('btnWorlds2').addEventListener('click', openWorlds);
   $('worldsClose').addEventListener('click', closeWorlds);
@@ -2471,8 +2634,8 @@ boot();
   }
   function controlsLine(force) {
     const touch = force || matchMedia('(pointer:coarse)').matches;
-    if (touch) return 'On your phone: drag the left side to walk with the joystick, drag the right side to look around, tap the jump button to jump and the run button to sprint. Tap me anytime for help.';
-    return 'Controls: W A S D or the arrow keys to move, mouse to look (click the screen to lock the mouse), Space to jump, Shift to sprint, M for the Worlds menu, H to warp home and C to chat with me. Esc frees your mouse. A game controller works too.';
+    if (touch) return 'On touch screens: drag the left side to walk with the joystick, drag the right side to spin the camera 360, pinch with two fingers to zoom in and out, tap JUMP to jump and RUN to sprint. Tap me anytime for help.';
+    return 'Controls: W A S D or the arrow keys to move, Space to jump, Shift to sprint. Drag the screen to spin the camera all the way around, scroll or pinch your trackpad to zoom, Q and E to rotate, V to flip between third and first person. M opens the Worlds menu, H warps home and C chats with me. Touch screens and game controllers work too.';
   }
   function vrLine() {
     return 'VR mode works in headsets like Meta Quest. Open the site in the headset browser and tap Enter VR. Left stick walks where you look, right stick snap-turns, A or the trigger jumps and the grip sprints. Clear some space around you, and take a break every 20 to 30 minutes. If you feel woozy, keep the comfort vignette on in Settings and slow down.';

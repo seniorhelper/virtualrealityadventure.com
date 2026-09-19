@@ -2180,7 +2180,7 @@ async function enterVR() {
 
 /* ---------- input ---------- */
 function pollGamepad(dt) {
-  if (xrSession || !navigator.getGamepads) return; const gps = navigator.getGamepads(); if (!gps) return;
+  if (xrSession || !navigator.getGamepads || pollGamepad.off) return; let gps; try { gps = navigator.getGamepads(); } catch (e) { pollGamepad.off = true; return; } if (!gps) return;
   for (const gp of gps) { if (!gp || gp.mapping !== 'standard') continue;
     const lx = gp.axes[0], ly = gp.axes[1], rx = gp.axes[2], ry = gp.axes[3];
     if (Math.hypot(lx, ly) > .18) { input.f = -ly; input.s = lx; input.gp = true; } else if (input.gp) { input.f = input.s = 0; input.gp = false; }
